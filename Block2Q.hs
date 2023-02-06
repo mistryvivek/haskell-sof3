@@ -41,13 +41,27 @@ onethree = map bitstring2int . filter parity
 onethree' css = [(bitstring2int cs)|
           cs <- css, parity cs == True]
 
-data Maybe a = Nothing | Just a
-
 ePbs2i :: [Bool] -> Int
 ePbs2i bs | parity bs = bitstring2int bs
 {- Anything false according to parity is not returned.-}
 
-{-Q2.2: Stuck-}
+{-Q2.2-}
+
+ePbs2iM :: Maybe [Bool] -> Maybe Int
+ePbs2iM (Just bs) | parity bs = Just (bitstring2int bs)
+                  | otherwise = Nothing
+ePbs2iM Nothing = Nothing
+
+doubleOdd :: Int -> Int
+doubleOdd n | odd n = n * 2
+
+doubleOddM :: Maybe Int -> Maybe Int
+doubleOddM Nothing = Nothing
+doubleOddM (Just o) | o `mod` 2 == 1 = Just (o * 2)
+                    | otherwise = Nothing
+                    
+doepM :: [Bool] -> String
+doepM a = maybe (bitstring2int a) 
 
 {-Q3.1:
 
