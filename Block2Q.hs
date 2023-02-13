@@ -1,8 +1,4 @@
-{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
-{-# HLINT ignore "Use camelCase" #-}
-{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 import Prelude
-import Control.Exception (bracketOnError)
 
 {- Any number that is even is added to one.-}
 oneone, oneone' :: [Int] -> [Int]
@@ -12,6 +8,12 @@ oneone' ns = if even (head ns)
              then (head ns + 1) : oneone' rest
              else oneone' rest
    where rest = tail ns
+
+{- oneone' = map (+1) . filter ((==0) . (`mod` 2)) 
+
+Mod 2 to all items in a list
+Filter by checking whether the result is 0.
+Return a list where you add +1 to each remaining element in the list.-}
 
 {- Mod index value by 2 and returns if true for all lower case letters-}
 onetwo, onetwo' :: [String] -> [Bool]
@@ -26,6 +28,20 @@ onetwoassist str@(s:tr) = if s `elem` ['a'..'z']
 
 onetwo' [] = []
 onetwo' css@(c:ss) = onetwoassist c ++ onetwo' ss
+
+{-
+onetwo' = map f . filter g . concat . filter h
+  where
+    f = (== 1) . (`mod` 2) . fromEnum
+    g = (`elem` ['a'..'z'])
+    h = (>1) . length
+    
+first take list where the length is greater then 1 (filter h)
+makes a 2d list into one dimension (concat . filter h)
+ensures that the charactor is a lower case letter (g)
+filters the 1d list using the function g to the output so far (filter g . concat . filter h)
+Applies the function f to constructed list.
+-}
 
 {-Takes a boolean list and converts to boolean.
 Starts on the left, takes in a lamba function with parameters n and b which does 2*n + 1(if B is true).
@@ -64,21 +80,27 @@ doubleOddM Nothing = Nothing
 doubleOddM (Just o) | o `mod` 2 == 1 = Just (o * 2)
                     | otherwise = Nothing
 
-{- 
+{-Odd and even are pre defined definitions in prelude.-}
+
+{-"Just" gives ePbs2iM, the expected data type.
+Then ePbs2iM gives the bitstring if there is even parity.
+Double odd m takes this input and double any odd number
+Show takes the output.
+
+If nothing is returned at any point, it will return "Ooops!"-}
+
 doepM :: [Bool] -> String
-doepM a = maybe "Oops!" (bitstring2int a * 2)
-
-
-doepE :: [Bool] -> String
-doepE = undefined
+doepM = maybe "Ooops!" show . doubleOddM . ePbs2iM . Just
 
 type Error a = Either String a
 
 doubleOddE :: Error Int -> Error Int
-doubleOddE  (Left msg) = 
+doubleOddE  (Left msg) = Left msg 
 doubleOddE  (Right o) | o `mod` 2 == 1 = Right (o * 2)
-                       | otherwise = Left "Must be an odd number!"
--}
+                      | otherwise = Left "Must be an odd number!"
+
+doepE :: [Bool] -> String
+doepE = undefined
 
 {-Q3.1:
 
