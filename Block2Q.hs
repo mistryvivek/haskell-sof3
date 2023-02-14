@@ -94,19 +94,27 @@ doepM = maybe "Ooops!" show . doubleOddM . ePbs2iM . Just
 
 type Error a = Either String a
 
+ePbs2iE :: Error [Bool]          -> Error Int
+ePbs2iE    (Left msg)             = Left msg
+ePbs2iE    (Right bs) | parity bs = Right (bitstring2int bs)
+                      | otherwise = Left "input has odd parity"
+
 doubleOddE :: Error Int -> Error Int
 doubleOddE  (Left msg) = Left msg 
 doubleOddE  (Right o) | o `mod` 2 == 1 = Right (o * 2)
                       | otherwise = Left "Must be an odd number!"
 
 doepE :: [Bool] -> String
-doepE = undefined
+doepE = either ("ERROR: "++) show . doubleOddE . ePbs2iE . Right
 
 {-Q3.1:
 
+Left to Right
+
 (if True then inc else dbl) (2+1)
 Inc (2+1)
-Inc 3-}
+(2+1) + 1
+4-}
 
 ones, nats :: [Integer]
 ones = 1 : ones
@@ -131,22 +139,39 @@ ones' = fix (1:)
 nats' :: [Integer]
 nats' = fix (map succ .) 0
 
+{- MODEL ANSWER:
+
+nats' = fix ((0:) . map (1+))-}
+
 ackermann :: Integer -> Integer -> Integer
 ackermann 0 n = n+1
 ackermann m 0 = ackermann (m-1) 1
 ackermann m n = ackermann (m-1) (ackermann m (n-1))
 
-{-
+{-GET FURTHER EXPLAINATION-}
 ackermann' :: Integer -> Integer -> Integer
-ackermann' n m = fix 
--}
+ackermann' = fix ack
+  where
+    ack _ 0 n = n+1
+    ack f m 0 = f (m-1) 1
+    ack f m n = f (m-1) (f m (n-1))
 
 bottom :: a
-bottom = fix bottom
+bottom = fix id
 
 findPlateau :: Eq a => [a] -> a
 findPlateau a | head a == head (tail a) = head a
               | otherwise = findPlateau (tail a) 
+
+{-
+MODEL SOLUTION
+
+findPlateau xs = head [x | (x, y) <- zip xs (tail xs), x==y]
+Makes pairs with the tail and the whole list and maps onto the tuple (x,y), if x
+and y are equal add it to the list. 
+Takes the head which is the first element in the list (hence the first occurance
+in the list).
+-}
 
 tz :: Int -> Int
 tz n = negate (n `div` 2)
@@ -166,16 +191,30 @@ value is in the next position.
 mersenne :: [Int]
 mersenne = map (\n -> n * n - 1) [0..]
 
+{-
+MODEL SOLUTION: mersenne = [2^n - 1 | n<-[0..]]
+-}
+
 eratosthenes :: [Int]
 eratosthenes = sieve (map Just [2..])
   where
     sieve (Just n  : ns) = n : sieve (zipWith ($) mark_n ns)
       where mark_n = cycle (replicate (n-1) id ++ [const Nothing]) 
     sieve (Nothing : ns) = sieve ns
-mersennePrime :: [Int]
-mersennePrime = [1,2]
 
-{-Look at solutions-}
+{-
+**Note** there is a function in `Data.List`, called `intersect` that
+computes the intersection of a list and a **finite** list.  Hence it
+will not work to compute the intersection in this case.  You will need
+to generate the intersection by another method, taking advantage of
+the fact that both infinite lists are ordered.
+-}
+mersennePrime :: [Int]
+mersennePrime = eratosthenes `inter` mersenne
+  where
+    ee@(e:es) `inter` mm@(m:ms) | e < m     = es `inter` mm
+                                | e == m    = e : es `inter` ms
+                                | otherwise = ee `inter` ms
 
 {-Q4-}
 
@@ -204,7 +243,7 @@ stop :: Tree a
 stop = Tree []
 
 vm1_e' :: VM
-vm1_e' = Coin `leadsto` vm1_e'
+vm1_e' = Coin `leadsto` (Choc `leadsto` vm1_e')
 
 vm1_h :: VM
 vm1_h = (Coin `leadsto` ((Choc `leadsto` vm1_h)
@@ -218,5 +257,60 @@ vm1_h' = Coin `leadsto` (Choc `leadsto` vm1_h')
         `branch`
         (Halt `leadsto` stop)
 
+{- Takes in input to a get to a given length "n".
+
+Base case is where you reach the level you want to end at.
+Stop just returns "Tree []"
+
+Tree is stored in a list [] containing a tuple () - left side 
+is always a leaf and the right side is always a Tree.
+
+So you can use the data structure defined "ts" to construct 
+a list containing a tuple which can then be converted to a 
+"Tree" type.
+
+So you keep on going to the right side of the tuple till you 
+stop to get to that end of the tree.
+-}
 takeTree :: Int -> Tree a -> Tree a
-takeTree = undefined
+takeTree 0 _         = stop
+takeTree n (Tree ts) = Tree (map fn ts)
+  where
+    fn (e, t) = (e, takeTree (n - 1) t)
+
+{-Similar logic to one before.
+
+Ignore e because we dont need to read data.
+
+ASK: Why use the sum function?-}
+countTree :: Tree a -> Int
+countTree (Tree ts) = sum (map fn ts)
+  where
+    fn (_, t) = 1 + countTree t
+
+{-Replaces tree as follows:
+Tree [(Coin, Tree [(Fudj, Tree [(Coin, Tree [(Fudj, Tree [])])])])]
+
+Replacing using the function `length . show` gives:
+Tree [(4, Tree [(4, Tree [(4, Tree [(4, Tree [])])])])]
+-}
+choc2fudj :: VM_Event -> VM_Event
+choc2fudj    Choc      = Fudj
+choc2fudj    x         = x
+
+{- Saying take in a Tree at every leaf apply the function
+passed in to the edge node.
+
+Otherwise, keep on iterating till the root node is reached.
+
+-}
+mapTree :: (a -> b) -> Tree a   -> Tree b
+mapTree    f         = rtf
+  where
+    rtf (Tree ts) = Tree (map fn ts)
+    fn (e, t) = (f e, rtf t)
+
+{-FURTHER BLOCK: Mapping over a type!-}
+
+instance Functor Tree where
+  fmap = mapTree
