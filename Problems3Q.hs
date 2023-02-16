@@ -33,12 +33,18 @@ studied in "Quantum Computation" (QUCO) in Stage 3 or 4.)
 Create a type class, `Group`, with suitable fields.
 -}
 
+class Group a where
+  ginverse :: a -> a
 
 {-
 The [`newtype Sum a`](https://hackage.haskell.org/package/base-4.14.1.0/docs/Data-Monoid.html#t:Sum) is a renaming of `Num` types `a` that form a `Semigroup` with `(<>) == (+)` and a `Monoid` with `mempty == 0`.
 
 Instantiate `Sum a` as an instance of the type class `Group`.
 -}
+
+instance Group (Sum a) where
+  ginverse a = Sum(negate a)
+
 {-
 > We could do something similar for the type class `Num a => Product
 > a`, but it is far more problematic in practice, as there are two
@@ -59,6 +65,10 @@ three _rotations_ and three _reflections_.  Here is one example of each:
 c/__\b               b/__\a           c/__\b             b/__\c
 ``` 
 The operations can be captured by a data type:
+  X
+  /\
+ /  \
+Z -- Y
 -}
 data Turn = Nought | OneTwenty | TwoForty -- angles in degrees
   deriving (Eq, Enum, Show)
@@ -96,7 +106,18 @@ neg    OneTwenty = TwoForty
 neg    TwoForty  = OneTwenty
 {-
 Instantiate `EqTriSym` as a `Semigroup`, a `Monoid` and a `Group`.
+
+instance Monoid EqTriSym where
+  mempty =
+  (<>) = 
+
+instance Group EqTriSym where
+  (<>) = 
+
+instance Semigroup EqTriSym where
+  ginverse = 
 -}
+
 {-
 ## Q3 `All` and `Any`
 
@@ -118,29 +139,44 @@ You will need the accessors `getAny :: Any -> Bool` and `getAll :: All
 -> Bool` as well as the constructors, `Any :: Bool -> Any` and `All ::
 Bool -> All`.
 -}
+
 all', any' ::  Foldable t => (a -> Bool) -> t a -> Bool
-all' = undefined
-any' = undefined
+all' = length . filter (==True) . map t a == length a
+any' = length . filter (==True) . map t a > 0
+
 {-
 The functions `all'` and `any'` have the same structure.  You are
 going to write a function, `compact` that abstracts this structure.
 The function `compact` can be used to create versions of `all` and
 `any`:
 -}
+
 all'', any'' :: Foldable t => (a -> Bool) -> t a -> Bool
 all'' = compact All
 any'' = compact Any
+
 {-
 The function relies on being able to extract a `Bool` from a monoid
 over `Bool`.  To do this first define a class `Extractable` that has
 one method, `extract :: a -> Bool`.  Then instantiate it for `Any` and `All`.
 -}
+
+class Extractable a where 
+  extract :: a -> Bool
+
+instance Extractable Any where
+  extract = length . filter (==True) . map t a > 0
+
+instance Extractable All where
+  extract = length . filter (==True) . map t a == length a 
+
 {-
 Now write the function `compact`, using the fact that a suitable
 function `extract` is available.
 -}
 compact :: (Foldable t, Monoid b, Extractable b) => (Bool -> b) -> (a -> Bool) -> t a -> Bool
 compact fromB p = undefined -- expression using `extract`
+
 {-
 ## Q4 Reasoning about `Nat`
 
@@ -180,54 +216,3 @@ sqn :: Nat -> Nat
 (/+/) = undefined
 (/*/) = undefined
 sqn   = undefined
-{-
-### Q4.2 Unit of multiplication
-Prove that: `∀ n::Nat {oneN /*/ n == n}`.
--}
-unitMul :: Nat -> ProofLayout Nat
-unitMul = undefined
-{-
-### Q4.3 Summation of odd numbers
-
-Given a positive `Nat` (that is, for any value not `Zero`) define a
-function that directly encodes the summation of the odd numbers from
-`1` up to `2*n - 1`, where the numbers are encoded as encoded as a
-`Nat`:
-```haskell
-let Succ m = twoN /*/ n in -- encodes m == 2*n - 1 
-  oneN /+/ threeN /+/ ... /+/ m
-```
-
-**Hint** rather than trying to encode subtraction, define the function
-in two cases
-1. One that deals with `n==1` (encoded as a `Nat`).
-2. One that deals with larger values of `n==k+1`, for positive `k`,
-   and rewrite the formula for the final value in terms of `k` (all
-   encoded as values in `Nat`).
--}
-sumOdd :: Nat -> Nat
-sumOdd = undefined
-{-
-### Q4.4 An induction proof over `Nat`
-We can prove theorems by induction over `Nat`.  Given a predicate
-`p::Nat->Bool` the induction rule is:
-> If `p Zero` and `∀ n::Nat {p n ⇒ p(Succ n)}` then `∀ n::Nat {p n}`
-
-Prove by structural induction the theorem from THE1, "Practical Sheet
-for Lectures 4, 5, & 6", Q2, which can be recast as
-```haskell
-∀ n :: Nat {sumOdd (Succ n) == sqn (Succ n)}
-```
-or as the even terser
-```haskell
-sumOdd . Succ = sqn . Succ
-```
-You may assume that `∀ n::Nat {(n+1)^2 == n^2 + 2*n + 1}`, which is encoded as: 
--}
-sqSucc :: Nat -> ProofLayout Nat
-sqSucc n = sqn (Succ n) :=: sqn n /+/ (twoN /*/ n) /+/ oneN :=: QED
-{-
-(For further practice, you may prove `sqSucc`.)
--}
-sumOdd_Sq :: Nat -> ProofLayout Nat
-sumOdd_Sq = undefined
