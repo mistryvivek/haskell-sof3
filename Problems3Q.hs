@@ -1,5 +1,6 @@
 module Problems3QA where
 import Data.Monoid
+import Text.XHtml (base)
 
 {-
 # SOF3/Block 3
@@ -42,8 +43,8 @@ The [`newtype Sum a`](https://hackage.haskell.org/package/base-4.14.1.0/docs/Dat
 Instantiate `Sum a` as an instance of the type class `Group`.
 -}
 
-instance Group (Sum a) where
-  ginverse a = Sum(negate a)
+instance Num a => Group (Sum a) where
+  ginverse (Sum a) = negate (Sum a)
 
 {-
 > We could do something similar for the type class `Num a => Product
@@ -106,17 +107,16 @@ neg    OneTwenty = TwoForty
 neg    TwoForty  = OneTwenty
 {-
 Instantiate `EqTriSym` as a `Semigroup`, a `Monoid` and a `Group`.
-
-instance Monoid EqTriSym where
-  mempty =
-  (<>) = 
-
-instance Group EqTriSym where
-  (<>) = 
+-}
 
 instance Semigroup EqTriSym where
-  ginverse = 
--}
+  (<>) = (|>)
+
+instance Monoid EqTriSym where
+  mempty = Rotn Nought
+
+instance Group EqTriSym where 
+  ginverse a = Refl X
 
 {-
 ## Q3 `All` and `Any`
@@ -141,25 +141,25 @@ Bool -> All`.
 -}
 
 all', any' ::  Foldable t => (a -> Bool) -> t a -> Bool
-all' = length . filter (==True) . map t a == length a
-any' = length . filter (==True) . map t a > 0
+ 
 
 {-
 The functions `all'` and `any'` have the same structure.  You are
 going to write a function, `compact` that abstracts this structure.
 The function `compact` can be used to create versions of `all` and
 `any`:
--}
+
 
 all'', any'' :: Foldable t => (a -> Bool) -> t a -> Bool
 all'' = compact All
 any'' = compact Any
+-}
 
 {-
 The function relies on being able to extract a `Bool` from a monoid
 over `Bool`.  To do this first define a class `Extractable` that has
 one method, `extract :: a -> Bool`.  Then instantiate it for `Any` and `All`.
--}
+
 
 class Extractable a where 
   extract :: a -> Bool
@@ -169,13 +169,15 @@ instance Extractable Any where
 
 instance Extractable All where
   extract = length . filter (==True) . map t a == length a 
+-}
 
 {-
 Now write the function `compact`, using the fact that a suitable
 function `extract` is available.
--}
+
 compact :: (Foldable t, Monoid b, Extractable b) => (Bool -> b) -> (a -> Bool) -> t a -> Bool
 compact fromB p = undefined -- expression using `extract`
+-}
 
 {-
 ## Q4 Reasoning about `Nat`
