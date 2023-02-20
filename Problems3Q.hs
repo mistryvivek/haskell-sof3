@@ -1,6 +1,5 @@
-module Problems3QA where
-import Data.Monoid
-import Text.XHtml (base)
+module Problems3Q where
+import Data.Monoid ( All(All, getAll), Sum(Sum), Any (getAny, Any))
 
 {-
 # SOF3/Block 3
@@ -141,43 +140,45 @@ Bool -> All`.
 -}
 
 all', any' ::  Foldable t => (a -> Bool) -> t a -> Bool
- 
+all' p = getAll . foldMap (All . p)
+any' p = getAny . foldMap (Any . p) 
 
 {-
 The functions `all'` and `any'` have the same structure.  You are
 going to write a function, `compact` that abstracts this structure.
 The function `compact` can be used to create versions of `all` and
 `any`:
-
+-}
 
 all'', any'' :: Foldable t => (a -> Bool) -> t a -> Bool
 all'' = compact All
 any'' = compact Any
--}
+
 
 {-
 The function relies on being able to extract a `Bool` from a monoid
 over `Bool`.  To do this first define a class `Extractable` that has
 one method, `extract :: a -> Bool`.  Then instantiate it for `Any` and `All`.
-
+-}
 
 class Extractable a where 
   extract :: a -> Bool
 
 instance Extractable Any where
-  extract = length . filter (==True) . map t a > 0
+  extract = getAny
 
 instance Extractable All where
-  extract = length . filter (==True) . map t a == length a 
--}
+  extract = getAll
+
 
 {-
 Now write the function `compact`, using the fact that a suitable
 function `extract` is available.
+-}
 
 compact :: (Foldable t, Monoid b, Extractable b) => (Bool -> b) -> (a -> Bool) -> t a -> Bool
-compact fromB p = undefined -- expression using `extract`
--}
+compact fromB p = extract . foldMap (fromB . p) -- expression using `extract`
+
 
 {-
 ## Q4 Reasoning about `Nat`
@@ -188,6 +189,7 @@ the `ProofLayout` type and the definition of `testPL`.
 infixr 0 :=: -- the fixity and priority of the operator
 data ProofLayout a = QED | a :=: ProofLayout a deriving Show
 instance Foldable ProofLayout where
+  foldr :: (a -> b -> b) -> b -> ProofLayout a -> b
   foldr f z = ffz
     where
       ffz QED        = z
@@ -203,6 +205,8 @@ oneN, twoN, threeN :: Nat
 oneN   = Succ Zero -- oneN.0
 twoN   = Succ oneN -- twoN.0
 threeN = Succ twoN -- threeN.0
+fourN = Succ threeN -- threeN.0
+
 {-
 This data type has exactly the same structure as that of the natural
 numbers: they both obey [the Peano axioms](https://brilliant.org/wiki/peano-axioms/),
@@ -213,8 +217,43 @@ one of which is the axiom of induction.
 ### Q4.1 Operations in `Nat`
 Define functions to add, multiply and square elements of `Nat`
 -}
+
 (/+/), (/*/) :: Nat -> Nat -> Nat
 sqn :: Nat -> Nat
-(/+/) = undefined
-(/*/) = undefined
-sqn   = undefined
+(/+/) a Zero = a
+(/+/) a (Succ b) = Succ a /+/ b
+ 
+(/*/) a Zero = Zero
+(/*/) a (Succ b) = a /+/ (a /*/ b)
+
+sqn   a = a /*/ a
+
+{-
+### Q4.2 Unit of multiplication
+Prove that: `∀ n::Nat {oneN /*/ n == n}`.
+-}
+
+unitMul :: Nat -> ProofLayout Nat
+unitMul n = oneN /*/ n :=: Succ Zero /*/ n :=: n /+/ (n /*/ Zero) :=: n /+/ Zero :=: n :=: QED
+
+{-
+### Q4.3 Summation of odd numbers
+
+Given a positive `Nat` (that is, for any value not `Zero`) define a
+function that directly encodes the summation of the odd numbers from
+`1` up to `2*n - 1`, where the numbers are encoded as encoded as a
+`Nat`:
+```haskell
+let Succ m = twoN /*/ n in -- encodes m == 2*n - 1 
+  oneN /+/ threeN /+/ ... /+/ m
+```
+
+**Hint** rather than trying to encode subtraction, define the function
+in two cases
+1. One that deals with `n==1` (encoded as a `Nat`).
+2. One that deals with larger values of `n==k+1`, for positive `k`,
+   and rewrite the formula for the final value in terms of `k` (all
+   encoded as values in `Nat`).
+-}
+sumOdd :: Nat -> Nat
+sumOdd = undefined
