@@ -80,3 +80,6 @@ type College = String
 
 onBus66 :: Students
 onBus66 = [("Zain", 18, "Halifax"), ("Julia", 20, "Constantine"), ("Mandy", 22, "Goodricke"), ("Jack", 24, "Constantine"),("Emma", 21, "Langwith"), ("Zack", 19, "Halifax"),("Alice", 21, "Halifax"), ("Bob", 19, "Alcuin"),("Lui", 22, "Goodricke")]
+
+colleges = map getCollege onBus66
+    where getCollege (_, x, _) = x
