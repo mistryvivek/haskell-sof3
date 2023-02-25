@@ -1,5 +1,4 @@
 module HuttonTextbook where
-import GHC.Base (VecElem(Int16ElemRep))
 
 {-1.1:
 
@@ -90,5 +89,30 @@ replicate' n x = [x| _ <- [1..n]]
 pyths :: Int -> [(Int, Int, Int)]
 pyths n = [(x, y, z) | x<-[1..n], y<-[1..n] ,z<-[1..n], x^2 + y^2 == z^2]
 
+factors :: Int -> [Int]
+factors n = [x|x<-[1..n-1], n `mod` x == 0]
 
+perfects :: Int -> [Int]
+perfects n = [x|x<-[1..n], sum(factors x) == x] 
+
+sumdown :: Int -> Int
+sumdown 0 = 0
+sumdown n = n + sumdown (n-1)
+
+expo :: Int -> Int -> Int
+expo n 0 = 1
+expo n c = n * expo n (c-1)
+
+all' :: (a -> Bool) -> [a] -> Bool
+all' p = and . map p
+
+any' :: (a -> Bool) -> [a] -> Bool
+any' p = or . map p
+
+map' :: Foldable t => (a -> b -> b) -> b -> t a -> b
+map' f = foldr f  
+
+
+filter' :: Foldable t => (a -> Bool) -> t a -> [a]
+filter' p = foldr (\x xs -> if p x then x : xs else xs) []
 

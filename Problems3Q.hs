@@ -256,4 +256,51 @@ in two cases
    encoded as values in `Nat`).
 -}
 sumOdd :: Nat -> Nat
-sumOdd = undefined
+sumOdd Zero        = error "\"sumOdd\" may only be applied to positive Nats"
+sumOdd (Succ Zero) = Succ Zero -- sumOdd.1
+sumOdd (Succ n)    = sumOdd n /+/ (twoN /*/ n) /+/ oneN -- sumOdd.2
+
+{-
+### Q4.4 An induction proof over `Nat`
+We can prove theorems by induction over `Nat`.  Given a predicate
+`p::Nat->Bool` the induction rule is:
+> If `p Zero` and `∀ n::Nat {p n ⇒ p(Succ n)}` then `∀ n::Nat {p n}`
+
+Prove by structural induction the theorem from THE1, "Practical Sheet
+for Lectures 4, 5, & 6", Q2, which can be recast as
+```haskell
+∀ n :: Nat {sumOdd (Succ n) == sqn (Succ n)}
+```
+or as the even terser
+```haskell
+sumOdd . Succ = sqn . Succ
+```
+You may assume that `∀ n::Nat {(n+1)^2 == n^2 + 2*n + 1}`, which is encoded as: 
+```haskell
+sqSucc :: Nat -> ProofLayout Nat
+sqSucc n = sqn (Succ n) :=: sqn n /+/ (twoN /*/ n) /+/ oneN :=: QED
+```
+-}
+sumOdd_Sq :: Nat -> ProofLayout Nat
+sumOdd_Sq Zero = -- base case
+  sumOdd (Succ Zero)
+  :=: -- sumOdd.1
+  Succ Zero
+  :=: -- (+).0
+  Zero /+/ Succ Zero
+  :=: -- (*).0
+  (Zero /*/ Succ Zero) /+/ Succ Zero
+  :=: -- (*).1
+  Succ Zero /*/ Succ Zero
+  :=: -- sqn.0
+  sqn (Succ Zero)
+  :=: QED
+sumOdd_Sq n = -- inductive step, n /= Zero
+  sumOdd (Succ n)
+  :=: -- sumOdd.2
+  sumOdd n /+/ (twoN /*/ n) /+/ oneN
+  :=: -- induction hypothesis
+  sqn n /+/ (twoN /*/ n) /+/ oneN
+  :=: -- sqSucc
+  sqn (Succ n)
+  :=: QED
