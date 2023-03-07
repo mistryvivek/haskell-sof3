@@ -116,3 +116,12 @@ map' f = foldr f
 filter' :: Foldable t => (a -> Bool) -> t a -> [a]
 filter' p = foldr (\x xs -> if p x then x : xs else xs) []
 
+{-MONODS-}
+
+data Tree' a = Leaf | Node (Tree' a) a (Tree' a)
+    deriving Show
+
+instance Functor (Tree' a) where
+    -- fmap :: (a -> b) -> Tree' a -> Tree' b
+    fmap f (Node (Tree' a) a (Tree' b)) = Node (fmap (Tree a) f a fmap (Tree a))
+    
