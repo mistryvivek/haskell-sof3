@@ -2,6 +2,7 @@ module Block4 where
 import Ncrosses
 import System.IO
 import Distribution.Simple.Setup (trueArg, falseArg)
+import Text.PrettyPrint.Annotated.HughesPJ (AnnotDetails(NoAnnot))
 {-
 # SOF3: Block 4 problems
 
@@ -84,9 +85,15 @@ In Chapter 11 of [Hutton][1], an interactive program that plays the game of tic-
 Write a function `fPlayer :: IO ()`, which offers any of the two players `O` or `X` the chance to go first. The function should first display a message like "Who wants to play first: " and expect either `O` or `X`, the response should be used to start the game. A message should be displayed for any other INVALID input and the players offered another chance to select a valid player to go first.
 -}
 fPlayer :: IO ()  
-fPlayer = undefined
-
-
+fPlayer = do
+    putStrLn "Who wants to play first: "
+    p <- getChar
+    let runGame i | i == 'O' = run empty O
+                    | i == 'X' = run empty X
+    if p == 'O' || p == 'X' 
+    then runGame p
+    else putStrLn "INVALID INPUT!!"
+    
 
 {-
 ## Q3: Interactive tic-tac-toe 

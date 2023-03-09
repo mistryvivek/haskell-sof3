@@ -49,6 +49,7 @@ diag g = [g !! n !! n | n <- [0..size-1]]
 
 won :: Grid -> Bool
 won g = wins O g || wins X g
+   
 
 -- Displaying a grid
 
@@ -110,7 +111,7 @@ run g p = do cls
              run' g p
 
 run' :: Grid -> Player -> IO ()
-run' g p | wins O g  = putStrLn "Player O wins!\n"
+run' g p | wins O g  = putStrLn "Player O wins!\n" 
          | wins X g  = putStrLn "Player X wins!\n"
          | full g    = putStrLn "It's a draw!\n"
          | otherwise =
