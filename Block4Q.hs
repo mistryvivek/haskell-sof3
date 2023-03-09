@@ -3,6 +3,7 @@ import Ncrosses
 import System.IO
 import Distribution.Simple.Setup (trueArg, falseArg)
 import Text.PrettyPrint.Annotated.HughesPJ (AnnotDetails(NoAnnot))
+import GHC.IO.Buffer (BufferState(WriteBuffer))
 {-
 # SOF3: Block 4 problems
 
@@ -102,7 +103,7 @@ In the tic-tac-toe game, the winner is printed on the screen. To keep track of t
 
 
 winner :: String -> IO ()
-winner = undefined
+winner = writeFile "champion.txt"
 
 {-
 ## Q4: Interactive tic-tac-toe
@@ -110,7 +111,13 @@ Assume the file `champion.txt` exist with the player who last won the game. Modi
 -}
 
 fPlayer' :: IO ()  
-fPlayer' = undefined
+fPlayer' = do
+    p <- readFile "champion.txt"
+    let runGame i | i == "O" = run empty O
+                    | i == "X" = run empty X
+    if p == "O" || p == "X"
+    then runGame p
+    else putStrLn "INVALID INPUT!!"
 
 {-
 ## References
