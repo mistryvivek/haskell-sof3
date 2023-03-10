@@ -118,10 +118,9 @@ filter' p = foldr (\x xs -> if p x then x : xs else xs) []
 
 {-MONODS-}
 
-data Tree' a = Leaf | Node (Tree' a) a (Tree' a)
-    deriving Show
+data Tree a = Leaf | Node (Tree a ) a (Tree a) deriving Show
+instance Functor Tree where
+    fmap g Leaf = Leaf 
+    fmap g (Node l x r) = Node (fmap g l) (g x) (fmap g r)
 
-instance Functor (Tree' a) where
-    -- fmap :: (a -> b) -> Tree' a -> Tree' b
-    fmap f (Node (Tree' a) a (Tree' b)) = Node (fmap (Tree a) f a fmap (Tree a))
     
