@@ -1,4 +1,4 @@
-module Block4 where
+module Block4Q where
 import Ncrosses
 import System.IO
 import Distribution.Simple.Setup (trueArg, falseArg)
@@ -88,12 +88,11 @@ Write a function `fPlayer :: IO ()`, which offers any of the two players `O` or 
 fPlayer :: IO ()  
 fPlayer = do
     putStrLn "Who wants to play first: "
-    p <- getChar
-    let runGame i | i == 'O' = run empty O
-                    | i == 'X' = run empty X
-    if p == 'O' || p == 'X' 
-    then runGame p
-    else putStrLn "INVALID INPUT!!"
+    p <- getLine
+    case p of
+       "O" -> run empty O
+       "X" -> run empty X
+       _ ->  putStrLn "INVALID INPUT!!" >> fPlayer 
     
 
 {-
@@ -113,11 +112,9 @@ Assume the file `champion.txt` exist with the player who last won the game. Modi
 fPlayer' :: IO ()  
 fPlayer' = do
     p <- readFile "champion.txt"
-    let runGame i | i == "O" = run empty O
-                    | i == "X" = run empty X
-    if p == "O" || p == "X"
-    then runGame p
-    else putStrLn "INVALID INPUT!!"
+    case p of
+       "O" -> run empty O
+       "X" -> run empty X
 
 {-
 ## References

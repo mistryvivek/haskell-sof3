@@ -111,8 +111,8 @@ run g p = do cls
              run' g p
 
 run' :: Grid -> Player -> IO ()
-run' g p | wins O g  = putStrLn "Player O wins!\n" 
-         | wins X g  = putStrLn "Player X wins!\n"
+run' g p | wins O g  = writeFile "champion.txt" (show g) >> putStrLn "Player O wins!\n" 
+         | wins X g  = writeFile "champion.txt" (show g)  >> putStrLn "Player X wins!\n" 
          | full g    = putStrLn "It's a draw!\n"
          | otherwise =
               do i <- getNat (prompt p)
