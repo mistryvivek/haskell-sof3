@@ -123,4 +123,5 @@ instance Functor Tree where
     fmap g Leaf = Leaf 
     fmap g (Node l x r) = Node (fmap g l) (g x) (fmap g r)
 
+
    

@@ -132,8 +132,8 @@ testsqDiff =
 sqDiff :: [Int] -> [Int]
 
 sqDiff a | length a <= 1 = []
-         | head a < a !! 1 = sqDiff (tail a) 
-         | otherwise = calc : sqDiff (tail a)
+         | head a > a !! 1 = calc : sqDiff (tail a) 
+         | otherwise = sqDiff (tail a)
     where calc = (head a - a !! 1) * (head a - a !! 1)
 
 {-

@@ -1,8 +1,9 @@
 module CanIHaskall where
 
 import Prelude
-import Data.Char (isNumber)
-import Data.ByteString (count)
+import Data.Char (isDigit, digitToInt)
+import Pack
+
 
 isHaskell :: String -> Bool
 isHaskell "Haskell" = True
@@ -42,7 +43,7 @@ prodCube (x:xs) = if (x `mod` 2 == 0 && x `mod` 4 > 0)
 consDiff :: String -> Int
 consDiff [] = 0
 consDiff (x:xs) | x `elem` "bcdfghjklmnpqrstvwxyzBCDFGHJKLMNPQRSTVWXYZ" = 1 - consDiff xs
-                | isNumber x = 1 + consDiff xs 
+                | x `elem` "0123456789" = 1 + consDiff xs 
                 | otherwise = consDiff xs
 
 testconsDiff :: Bool
@@ -81,5 +82,82 @@ type College = String
 onBus66 :: Students
 onBus66 = [("Zain", 18, "Halifax"), ("Julia", 20, "Constantine"), ("Mandy", 22, "Goodricke"), ("Jack", 24, "Constantine"),("Emma", 21, "Langwith"), ("Zack", 19, "Halifax"),("Alice", 21, "Halifax"), ("Bob", 19, "Alcuin"),("Lui", 22, "Goodricke")]
 
-colleges = map getCollege onBus66
-    where getCollege (_, x, _) = x
+colleges :: Age -> [College]
+colleges a = [college | (_,age,college) <- onBus66, age == a]
+
+type BoolD a = (Bool, a)
+
+bd2m :: BoolD a -> Maybe a
+bd2m (True, a) = Just a
+bd2m (False, _) = Nothing
+
+bDSum :: [Char] -> BoolD Int
+bDSum ss = (True, sum [digitToInt s | s <- ss, isDigit s])
+
+mBSum :: [Char] -> Maybe Int
+mBSum ss = bd2m (bDSum ss)
+
+data TreeP a = Leaf Int | Node (TreeP a) a (TreeP a) deriving (Eq, Show)
+emptyTreeP :: TreeP a
+emptyTreeP = Leaf 0
+
+itp :: Ord a => a -> TreeP a -> TreeP a 
+itp new (Node s value g) | value > new = Node (itp new s) value g
+        | value < new = Node s value (itp new g)
+itp new (Leaf a) = Node (Leaf newa) new (Leaf newa)
+    where newa = a + 1
+
+treeList :: TreeP a -> [a]
+treeList (Node s value g) = treeList s ++ [value] ++ treeList g 
+treeList (Leaf a) = [] 
+
+
+data DBTree = DBLeaf | DBNode DBTree (Int, String) DBTree deriving (Eq, Show)
+
+
+smallDB :: DBTree
+smallDB = DBNode (DBNode DBLeaf (2,"James") DBLeaf) (3,"Maxwell") (DBNode DBLeaf (6,"Helen") DBLeaf)
+
+
+testUpdate :: Bool
+testUpdate = (stdUpdate 6 "Abi" smallDB == Right (DBNode (DBNode DBLeaf (2,"James") DBLeaf) (3,"Maxwell") (DBNode DBLeaf (6,"Abi") DBLeaf))) && (stdUpdate 8 "Mandy" smallDB == Left "There is no such student with ID: 8")
+
+
+
+
+stdUpdate :: Int -> String -> DBTree -> Either String DBTree
+stdUpdate id name tree = if tree == newTree
+                         then Left "There is no such student with ID: 8"
+                         else Right (helper id name tree)
+    where 
+        helper id new_name (DBNode a (comparision, old) b) | comparision == id = DBNode a (comparision, new_name) b
+                                                    | comparision > id = DBNode (helper id new_name a) (comparision, old) b
+                                                    | otherwise = DBNode a (comparision, old) (helper id new_name b)
+        helper _ _ DBLeaf = DBLeaf
+        newTree = helper id name tree
+
+infixr 0 :=: -- the fixity and priority of the operator
+data ProofLayout a = QED | a :=: ProofLayout a deriving Show
+
+pack :: [Card]
+{-COPIED-}
+pack = [Card s v | s <- [Clubs .. Spades], v <- [Two .. Ace]]
+
+psrnTest :: Bool
+psrnTest = psrn 1234567890 == 395529916 && psrn 2468013579 == 1257580448
+
+psrn :: Integral a => a -> a
+psrn n = 7^5 * n `mod` (2^31 - 1)
+
+insertMod :: Int -> [a] -> a -> [a]
+insertMod n xs x = left ++ x:right
+  where
+    (left, right) = splitAt (n `mod` (length xs + 1)) xs
+
+shuffleStep :: (Int -> Int) -> (Int, [a]) -> a -> (Int, [a])
+shuffleStep a (num, list) c = (a num, insertMod num list c)
+
+shuffleStepTest :: Bool
+shuffleStepTest = shuffleStep id (3, "hello") 'x' == ( 3, "helxlo")
+    && shuffleStep psrn (1234567890, [0 .. 4]) 9 == ( 395529916, [9,0,1,2,3,4])
+    && shuffleStep psrn (2468013579, [0 .. 4]) 9 == (1257580448, [0,1,2,9,3,4])
