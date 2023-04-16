@@ -3,6 +3,8 @@ module CanIHaskall where
 import Prelude
 import Data.Char (isDigit, digitToInt)
 import Pack
+    ( Value(Ace, Two), Suit(Spades, Clubs), Card(..), Hand )
+import GHC.Utils.Encoding (zDecodeString)
 
 
 isHaskell :: String -> Bool
@@ -161,3 +163,51 @@ shuffleStepTest :: Bool
 shuffleStepTest = shuffleStep id (3, "hello") 'x' == ( 3, "helxlo")
     && shuffleStep psrn (1234567890, [0 .. 4]) 9 == ( 395529916, [9,0,1,2,3,4])
     && shuffleStep psrn (2468013579, [0 .. 4]) 9 == (1257580448, [0,1,2,9,3,4])
+
+shuffle :: (Int -> Int) -> Int -> [a] -> [a]
+shuffle fn val ls = shuffleWithTracker fn val ls []
+
+shuffleWithTracker :: (Int -> Int) -> Int -> [a] -> [a] -> [a]
+shuffleWithTracker _ _ [] lsNew = lsNew
+shuffleWithTracker fn val lsOld lsNew = shuffleWithTracker fn newValue updatedOldLs lsNewUpdated
+    where nextToAdd = head lsOld
+          updatedOldLs = tail lsOld
+          (newValue, lsNewUpdated) = shuffleStep fn (val, lsNew) nextToAdd 
+
+shuffleTest :: Bool
+shuffleTest =
+    shuffle psrn 1234567890 [0 .. 9] == [9,4,1,0,3,7,6,5,8,2]
+        && shuffle psrn 2468013579 [0 .. 9] == [2,4,1,3,5,8,9,6,0,7]
+        && shuffle id 0 [0 .. 9] == [9,8,7,6,5,4,3,2,1,0]
+        && shuffle (+1) 0 [0 .. 9] == [0,1,2,3,4,5,6,7,8,9]
+
+insertOrd :: Ord a => a -> [a] -> [a]
+insertOrd w = foldr f [w]
+    where f x ys@(z:zs) | x > w = z:x:zs
+                        | otherwise = x:ys  
+
+deal :: Ord a => [a] -> ([a], [a], [a], [a])
+{-solution-}
+deal = foldr dealAndTurn ([], [], [], [])
+  where
+    dealAndTurn c (ws, ss, es, ns) = (insertOrd c ns, ws, ss, es)
+
+shuffleDeal  :: (Int -> Int)                -- function to update integer
+                -> Int                      -- seed
+                -> (Hand, Hand, Hand, Hand) -- result
+{-solution-}
+shuffleDeal next seed = deal (shuffle next seed pack)
+
+
+type Trumps = Maybe Suit  
+
+noTrumpSuit :: Trumps
+noTrumpSuit = Nothing
+
+theTrumpSuit :: Suit -> Trumps
+theTrumpSuit = Just
+
+trickWinner :: Trumps -> Card -> [Card] -> Card
+trickWinner t (Card pack num) ls | t == noTrumpSuit = findHighestInPack pack
+    where findHighestInPack pack = maximum [Card pack v `elem` ls| v <- [Two .. Ace]]
+
