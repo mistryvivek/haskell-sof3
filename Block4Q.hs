@@ -1,9 +1,7 @@
 module Block4Q where
 import Ncrosses
 import System.IO
-import Distribution.Simple.Setup (trueArg, falseArg)
-import Text.PrettyPrint.Annotated.HughesPJ (AnnotDetails(NoAnnot))
-import GHC.IO.Buffer (BufferState(WriteBuffer))
+
 {-
 # SOF3: Block 4 problems
 

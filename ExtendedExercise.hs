@@ -183,8 +183,10 @@ between lists and `Placement`s.  They should be inverses of each other.
 -}
 toList :: Placement -> [((Position, Player), Int)]
 fromList :: [((Position, Player), Int)] -> Placement
-toList = undefined
-fromList = undefined 
+toList placement =  [(pair, n)| a<-completeBoard, b<-possiblePlayer, let pair = (a, b), let n = placement pair, n /= 0]
+  where completeBoard = [Start .. Home]
+        possiblePlayer = [Red, Green]
+fromList places = maybe 0 id . flip lookup places 
 testToFromList :: Bool
 testToFromList = ((Sq_3, Red), 9) `elem` toList(fromList [((Sq_3, Red), 9)])
                  && not(((Sq10, Red), 0) `elem` toList(fromList [((Sq_3, Red), 9)]))

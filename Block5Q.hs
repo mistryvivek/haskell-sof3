@@ -1,10 +1,10 @@
 module Block5Q where
-import Control.Exception
+import Control.Exception ( catchJust )
 import System.IO
 import System.IO.Error
 import Test.QuickCheck
 import Data.List
-import GHC.Base (undefined)
+
 
 {-
 # SOF3: Block 5 Problems
@@ -65,7 +65,8 @@ filterFile2 ::    (String -> Bool)   -- to select lines
                -> FilePath           -- source file
                -> FilePath           -- destination file
                -> IO ()
-filterFile2 select source dest = catchJust (\e -> if isDoesNotExistErrorType (isEOFError e) then Just () else Nothing)
+--filterFile2 select source dest = catchJust (\e -> if isDoesNotExistErrorType (isEOFError e) then Just () else Nothing)
+filterFile2 select source dest = catchJust (\e -> if (isEOFError e) then Just () else Nothing)
           (filterFile select source dest)
           (\_ -> do putStrLn "End of file reached: ")
 {-
@@ -107,12 +108,6 @@ checkMarks :: [Student] -> Bool
 checkMarks a = all (==True) (map induvidualStudentCheck a)
   where induvidualStudentCheck (Student ls) = all (==True) (map goodStuCheck ls)
         goodStuCheck (_, Nothing) = True
-        goodStuCheck (_, Just a) = a < 101
-
-
-induvidualStudentCheck :: Student -> Bool
-induvidualStudentCheck (Student ls) = all (==True) (map goodStuCheck ls)
-  where goodStuCheck (_, Nothing) = True
         goodStuCheck (_, Just a) = a < 101
 
 
@@ -174,7 +169,6 @@ Given a datatype `Module`, use `Gen` from the `Test.QuickCheck` module to genera
 
 -}
 
-{-
 moduleGen :: Gen Module
 moduleGen = oneof
       [return THE1, return SOF1, return THE2, return SOF2, return SYS1, return DAT1, return HCI1]
@@ -182,7 +176,7 @@ moduleGen = oneof
 instance Arbitrary Module where
   arbitrary = moduleGen
   -- sample $ (arbitrary :: Gen Student)
--}
+
 
 {-
 ### Problem 6 - QuickCheck 
@@ -190,15 +184,16 @@ Given that a student has type: `newtype Student = Student [(Module, Maybe Int)]`
 Note: a randomly generated `Student` can have the same `Module` multiple time and mark outsite the range 0-100.
 -}
 
-{-
 studentGen :: Gen Student
-studentGen = do r <- moduleGen
-                s <- oneOf [Just choose (0, 100), Nothing]
-                return Student[(r, s)]
+studentGen = do r <- arbitrary
+                s <- arbitrary
+                return (Student [(r, s)])
 
 instance Arbitrary Student where
   -- sample $ (arbitrary :: Gen Student)
   arbitrary = studentGen
--}
+
+
+
 
 
