@@ -83,7 +83,14 @@ filterFile3 ::    (String -> Bool)   -- to select lines
                -> FilePath           -- source file
                -> FilePath           -- destination file
                -> IO ()
-filterFile3 = undefined
+filterFile3 select source destination =
+  withFile source ReadMode
+    (\ s -> withFile destination WriteMode
+              (\ d -> forever (transferOneLine select s d)))
+               -- forever terminates when an EOF exception is thrown in transferOneLine
+  where
+    forever act = let fra = do {act; fra} in fra
+
 {-
 ## Question: Strictness
 
