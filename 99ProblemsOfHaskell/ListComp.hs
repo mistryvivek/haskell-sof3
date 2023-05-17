@@ -1,5 +1,5 @@
 module ListComp where
-    
+
 myLast', myLast :: [a] -> a
 myLast' = head . reverse
 myLast = last
@@ -23,6 +23,4 @@ isPalindrome xs = reverse xs == xs
 
 data NestedList a = Elem a | List [NestedList a]
 flatten :: NestedList a -> [a]
-flatten = map fn 
-    where fn (List x) = map fn x
-          fn (Elem x) = x 
+flatten = undefined
