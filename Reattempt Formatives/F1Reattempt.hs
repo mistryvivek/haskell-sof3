@@ -1,6 +1,6 @@
-module F1Reattempt where
-import Data.Char(isAlpha)
-import Data.Maybe(fromJust)
+module Formative1 where
+import Data.Char (isAlpha)
+
 
 {-
 
@@ -23,7 +23,7 @@ testP = (isPass [] == False) &&
 
 isPass :: Predicate [Integer]
 
-isPass a = sum a >= 40
+isPass xs = sum xs >= 40 
 
 
 {-
@@ -44,9 +44,9 @@ testAl = (isAlphabet "" == True ) &&
  (isAlphabet "Software" == True)
 
 
-isAlphabet :: Predicate String 
+isAlphabet:: Predicate String 
 
-isAlphabet = all ((== True) . isAlpha) 
+isAlphabet = all ((== True) . isAlpha)
 
 {-
 
@@ -67,9 +67,8 @@ testcmbList =
 
 cmbList :: [a] -> [a] -> [a]
 
-cmbList a b = concatMap switch (zip a b)
-    where switch (a, b) = [b, a]
-
+cmbList xs ys = concatMap combine (zip xs ys)
+    where combine (a, b) = b : [a]
 
 {-
 ## Qiv: [2 mark] 
@@ -91,8 +90,8 @@ testcmbProd =
 
 cmbProd :: Num x => [x] -> [x] -> [x]
 
-cmbProd a b = map cal (zip a b)
-    where cal (x, y) = x * y
+cmbProd xs ys = concatMap multi (zip xs ys)
+    where multi (a, b) = [a * b]
 
 
 {-
@@ -112,9 +111,14 @@ testsqDiff =
     (sqDiff [4, 6, 3, 1, 8]  == [9, 4])
 
 
+
 sqDiff :: [Int] -> [Int]
 
-sqDiff = undefined
+
+sqDiff [] = []
+sqDiff [_] = []
+sqDiff (x:y:xs) | x > y = ((x - y) * (x - y)) : sqDiff(y:xs)
+    | otherwise = sqDiff (y:xs)
 
 
 {-
@@ -136,7 +140,14 @@ testM2int =
 
 maybe2int :: [Maybe Int] -> Int 
 
-maybe2int = sum . map fromJust . filter (/= Nothing) 
+maybe2int = sum . map convert
+    where convert Nothing = 0
+          convert (Just x) = x
+
+maybe2int' :: [Maybe Int] -> Int
+maybe2int' = foldr ((+) . convert) 0 
+    where convert Nothing = 0
+          convert (Just x) = x
 
 {-
 
@@ -166,8 +177,9 @@ testcmb = (cmb "Hello" [] [] == []) &&
 
 cmb :: Num a => String -> [a] -> [a] -> [a]
 
-cmb = undefined
-
+cmb "Product" xs ys = cmbProd xs ys 
+cmb "List" xs ys = cmbList xs ys
+cmb _ _ _ = []
 
 {-
 
@@ -202,8 +214,8 @@ test1MK = the1Mk s1Db == [("Beth",65),("Adam",55),("Lisa",60),
 
 the1Mk :: [CS1] -> [(String, Int)]
 
-the1Mk = map extract
-    where extract x = (name x, the1 x) 
+the1Mk = map extract'
+    where extract' stu = (name stu, the1 stu)
 
 {-
 
@@ -219,9 +231,12 @@ testSOF1 = tSOF1 s1Db == [("Lisa",65,60),("Mark",50,67)]
 
 tSOF1 :: [CS1] -> [(String, Int, Int)]
 
-tSOF1  = map extract 
-    where extract x = (name x, the1 x, sys1 x) 
+tSOF1  = undefined
 
+{-get :: [CS1] -> [CS1]
+get stu = map extract'' (filter ((>70) . sof1))
+    where extract'' stu = (name stu, sys1 stu, the1 stu)
+-}
 {-
 
 ### Qviiic:[3 mark]
@@ -235,7 +250,9 @@ testavg = avgSYS1 s1Db == 60.8
 
 avgSYS1 :: [CS1] -> Float  
  
-avgSYS1  = undefined
+avgSYS1 xs = fromIntegral total / fromIntegral amountOfStu
+    where amountOfStu = length xs
+          total = sum $ map sys1 xs
 
 {-
 ## Qix: [4 mark] 
@@ -261,7 +278,9 @@ testvowelDigit =
 
 
 vowelDigit :: String -> Bool 
-vowelDigit = undefined
+vowelDigit [] = True
+vowelDigit [x] =  False
+vowelDigit (x:y:xs) = x `elem` "aeiouAEIOU" && y `elem` "0123456789" && vowelDigit xs
 
 
 {-
@@ -343,5 +362,6 @@ testBcode =
 toBarcode :: String -> Maybe String  
 
 toBarcode = undefined
+
 
 
