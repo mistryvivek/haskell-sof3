@@ -177,7 +177,7 @@ testcmb = (cmb "Hello" [] [] == []) &&
 
 cmb :: Num a => String -> [a] -> [a] -> [a]
 
-cmb "Product" xs ys = cmbProd xs ys 
+cmb "Prod" xs ys = cmbProd xs ys 
 cmb "List" xs ys = cmbList xs ys
 cmb _ _ _ = []
 
@@ -231,12 +231,9 @@ testSOF1 = tSOF1 s1Db == [("Lisa",65,60),("Mark",50,67)]
 
 tSOF1 :: [CS1] -> [(String, Int, Int)]
 
-tSOF1  = undefined
-
-{-get :: [CS1] -> [CS1]
-get stu = map extract'' (filter ((>70) . sof1))
+tSOF1 xs = map extract'' $ filter ((>70) . sof1) xs
     where extract'' stu = (name stu, sys1 stu, the1 stu)
--}
+
 {-
 
 ### Qviiic:[3 mark]
@@ -301,7 +298,7 @@ Define `nullBR` to be the smallest possible balanced, length-regular tree.
 -}
 nullBR :: BinTree x 
 
-nullBR = undefined
+nullBR = Lf 0 
 
 {-
 ### Qxb: [4 mark]
@@ -319,8 +316,12 @@ testBal = (isTreeBal (nullBR) == True ) &&
 
 isTreeBal :: BinTree a -> Bool
 
-isTreeBal = undefined
-
+isTreeBal (Lf _) = True
+isTreeBal (Branch lf x rt) = lengthOfDeepest lf == lengthOfDeepest rt && lengthRegular lf 0 && lengthRegular rt 0
+    where lengthOfDeepest (Lf _) = 1
+          lengthOfDeepest (Branch lf _ rt) = 1 + max (lengthOfDeepest lf) (lengthOfDeepest rt)
+          lengthRegular (Lf x) n = x == n+1
+          lengthRegular (Branch lf _ rt) n = lengthRegular lf (n+1) && lengthRegular rt (n+1)
 
 {-
 ### Qxc: [2 mark] 
@@ -340,7 +341,8 @@ testN =
 
 treeNodes :: BinTree a -> Int
 
-treeNodes = undefined
+treeNodes (Lf _ ) = 0
+treeNodes (Branch lf _ rt) = 1 + treeNodes lf + treeNodes rt 
 
 
 {-
@@ -361,7 +363,11 @@ testBcode =
 
 toBarcode :: String -> Maybe String  
 
-toBarcode = undefined
+toBarcode = foldl change (Just "")
+    where change (Just x) '0'  =  Just (x ++ ".")   
+          change (Just x)  '1' =  Just (x ++ "|")
+          change _ _ = Nothing   
+
 
 
 
