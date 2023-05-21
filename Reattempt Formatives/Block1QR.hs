@@ -227,17 +227,20 @@ bananas is ordered.  Assume that orders must be whole numbers of
 kilos, and cost is expressed in in pennies.
 -}
 
-bananas :: Int -> Int
-bananas order | order < min_order = undefined
-              | undefined         = undefined
-              | otherwise         = undefined
+type Error a = Either String a 
+
+bananas :: Int -> Error Int
+bananas order | order < min_order = Left "Must order more then 2kg"
+              | bananaCost < 50   = Right (bananaCost + 499)
+              | otherwise         = Right (bananaCost + 150)
               where 
                 min_order = 2
+                bananaCost = order * 300
 
 bananasTest :: Bool
 bananasTest =
-  bananas 2 == 1099
-  && bananas 20 == 6349
+  bananas 2 == Right 1099
+  && bananas 20 == Right 6349
 
 {-
 ### Q5.4
@@ -262,7 +265,8 @@ numbers and names of parameters, whether guards are needed, and so on.
 -}
 
 pennies2pounds :: Int -> String
-pennies2pounds = undefined
+pennies2pounds x = "£" ++ show pound ++ "." ++ show pence
+  where (pound, pence) = x `divMod` 100
 
 {-
 ### Q5.5
@@ -311,11 +315,16 @@ table and twice using "don't care" patterns, once in each style.
 -}
 
 implies', implies'', implies''' :: Bool -> Bool -> Bool
-implies' a b = undefined -- full table
+implies' True True   = True -- full table
+implies' True False  = False
+implies' False True  = True
+implies' False False = True
 
-implies'' a b  = undefined -- using "don't care" patterns
+implies'' True False = False -- don't care pattern
+implies'' _     _    = True
 
-implies''' a b = undefined
+implies''' False _ = True
+implies''' _     b = b
 
 {-
 Which of the three "table" styles is the best?  How does the best
@@ -345,7 +354,9 @@ input item.
 -}
 
 eats :: Item -> [Item]
-eats = undefined
+eats Dog = [Chicken]
+eats Chicken = [Grain]
+eats _ = []
 
 {-
 Create a function `danger` that, given two `Item`s, reports if either
@@ -354,7 +365,7 @@ defined.  You may find the `Prelude` function `elem` useful.
 -}
 
 danger :: Item -> Item -> Bool
-danger = undefined
+danger x y = (x `elem` eats y) || (y `elem` eats x)
 
 {-
 ## Q6: Recursive functions
@@ -371,8 +382,8 @@ Do this _without_ using any functions from `Prelude`.
 -}
 
 incList :: [Int] -> [Int]
-incList [] = undefined
-incList (n:ns) = undefined
+incList [] = []
+incList (n:ns) = n+1 : incList ns
 
 {-
 Haskell has lots of functions in its libraries that capture particular
@@ -384,7 +395,7 @@ map f [a, b, c] == [f a, f b, f c]
 Define `incList'` using `map`.
 -}
 incList' :: [Int] -> [Int]
-incList' = undefined
+incList' = map (+1) 
 
 {-
 ### Q6.2
@@ -400,7 +411,9 @@ As an example, rewrite `greetTest` as `greetTest'`.
 the form `(input, expectedOutput)`.  The function can conveniently be
 defined in a `where` clause.
 -}
-greetTest' = undefined
+greetTest' :: [(String, String)] -> Bool
+greetTest' = all (==True) . map tests
+  where tests (a, b) = greet a == b 
 
 {-
 ### Q6.3
@@ -427,8 +440,10 @@ the type in your file.
 -}
 
 pos :: Eq a => a -> [a] -> Int
-pos = undefined
-
+pos y xs = findPos 0 xs
+  where findPos _ [] = -1
+        findPos n (x:xs) | x == y = n
+                         | otherwise = findPos (n+1) xs
 {-
 ### Q6.4
 
@@ -538,16 +553,16 @@ Express reverse of a list twice, once as a right fold and once as a
 left fold.
 -}
 revRF, revLF :: [a] -> [a]
-revRF = foldr undefined undefined
-revLF = foldl undefined undefined
+revRF = foldr (\x y -> x:y) []
+revLF = foldl (flip (:)) [] 
 
 {-
 ### Q6.11
 Express `length` of a list as both a right and a left fold.
 -}
 lenRF, lenLF :: [a] -> Int
-lenRF = foldr undefined undefined
-lenLF = foldl undefined undefined
+lenRF = foldr (const (1+)) 0
+lenLF = foldl (flip (const (1+))) 0
 
 {-
 ### Q6.12 (SOF1)

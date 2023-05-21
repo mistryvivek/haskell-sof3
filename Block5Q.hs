@@ -84,12 +84,17 @@ filterFile3 ::    (String -> Bool)   -- to select lines
                -> FilePath           -- destination file
                -> IO ()
 filterFile3 select source destination =
-  withFile source ReadMode
-    (\ s -> withFile destination WriteMode
-              (\ d -> forever (transferOneLine select s d)))
-               -- forever terminates when an EOF exception is thrown in transferOneLine
+    withFile source ReadMode
+             (\ s -> withFile destination WriteMode
+                              (\ d -> body s d (transferOneLine select)))
   where
-    forever act = let fra = do {act; fra} in fra
+    body s d act = bsda
+      where
+        bsda = do
+          eof <- hIsEOF s
+          if eof
+            then putStrLn "Transfer complete"
+            else do {act s d; bsda}
 
 {-
 ## Question: Strictness
@@ -98,7 +103,19 @@ Define a strict version of `foldr`, `foldr'`.  When is it appropriate
 to use `foldr'`?
 -}
 foldr' :: (a -> b -> b) -> b -> [a] -> b
-foldr' = undefined
+foldr' f z = frfz
+  where
+    frfz []     = z
+    frfz (x:xs) = f x $! frfz xs -- $! means strict application
+
+-- Strict means that arguments are evaluated immediately.
+{-
+It only make sense to use this if `f` is strict in its second argument,
+for example: `(+)`, `\ xs ys -> reverse ys ++ xs`.
+
+The function is applied to the first and second argument although 
+it is evaluated immediately.
+-}
 
 {-
 ## Question: Testing
@@ -137,8 +154,8 @@ prereq DAT1 = [THE1]
 prereq _    = []
 
 checkPrereqs :: Student -> Bool
-checkPrereqs = undefined
-{-DON'T KNOW HOW TO DO UNCOMPLICATED-}
+checkPrereqs (Student ms) = and [and [p `elem` mods | p <- prereq m] | m<-mods]
+  where mods = [m | (m, _) <- ms]
 
 {-
 ### Problem 3 - QuickCheck 
@@ -168,7 +185,10 @@ listOrdered xs = snd $ foldr go (Nothing, True) xs
 
 
 prop_listOrdered :: String -> Bool
-prop_listOrdered = undefined
+prop_listOrdered xs = listOrdered xs == isOrdered xs
+
+isOrdered :: (Ord a) => [a] -> Bool
+isOrdered xs = and (zipWith (<=) xs (tail xs))
 
 {-
 ### Problem 5 - QuickCheck 
