@@ -1,5 +1,6 @@
 module Formative2 where
 import Data.Char (isSpace)
+import MkIface (recompileRequired)
 type REPLACE_THIS_TYPE = () -- DO NOT ALTER
 
 {-
@@ -167,8 +168,9 @@ enterL outlet food reco (RecL existing) = RecL (enterLNormalList outlet food rec
   where enterLNormalList outlet food reco (((outletOld, foodOld), recoOld):xs)| outlet == outletOld && food == foodOld = [((outlet, food), reco)] ++ enterLNormalList outlet food reco xs
           | otherwise = ((outletOld, foodOld), recoOld) : enterLNormalList outlet food reco xs
         enterLNormalList outlet food reco [] = [((outlet, food), reco)]
-enterF outlet food reco existing = RecF (\otfd -> case otfd of (outlet, food) -> Just reco)
-
+enterF outlet food reco existing = RecF (funct)
+  where funct (outlet, food) = Just reco
+        funct (x, y) = existing (x, y)
 
 {-
 ### 2(iii) [6 marks]
@@ -184,7 +186,7 @@ reportL outlet food (RecL existing) = search existing
   where search (x@((outletLs, foodLs), reco):xs) | outlet == outletLs && food == foodLs = Just reco
                                                  | null x = Nothing 
                                                  | otherwise = search xs
-reportF outlet food db = undefined
+reportF outlet food (RecF x) = x (outlet, food)
 
 {-
 ## Question 3 [10 marks]

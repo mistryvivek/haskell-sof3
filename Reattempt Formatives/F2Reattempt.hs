@@ -1,4 +1,5 @@
 module Formative2 where
+import Data.List(nub)
 type REPLACE_THIS_TYPE = () -- DO NOT ALTER
 
 {-
@@ -69,7 +70,7 @@ Instantiate `Song` as a member of `class Eq`.
 -}
 
 instance Eq Song where
-  (==) =  
+  (==) a b = ident a == ident b 
 
 {-
 ### 1(ii) [7 marks]
@@ -80,8 +81,8 @@ and segments have durations (in whole numbers of seconds)
 as well as a collection of songs to be played during the segment.
 -}
 
-type Programme = REPLACE_THIS_TYPE
-type Segment = REPLACE_THIS_TYPE
+newtype Programme = Programme [Segment]
+type Segment = ([Song], Int)
 
 {-
 ### 1(iii) [10 marks]
@@ -95,9 +96,12 @@ Define functions to determine if songs, segments and programmes are valid:
 validSong :: Song -> Bool
 validSegment :: Segment -> Bool
 validProgramme :: Programme -> Bool
-validSong = undefined
-validSegment = undefined
-validProgramme = undefined
+validSong sg = not $ null (title sg) && duration sg >= 0
+validSegment (sgs, dr) = all validSong sgs && dr >= segdr
+  where segdr = sum $ map duration sgs
+validProgramme (Programme x) = all validSegment x && allSongs == nub allSongs
+  where allSongs = concatMap getAllSongs x 
+        getAllSongs (a , _) = map ident a
 
 {-
 ## Question 2 [15 marks]
@@ -146,8 +150,8 @@ Give values to represent an empty database:
 -}
 emptyL :: RecL outlet food
 emptyF :: RecF outlet food
-emptyL = undefined
-emptyF = undefined
+emptyL = RecL []
+emptyF = RecF (const Nothing)
 
 {-
 ### 2(ii) [7 marks]
@@ -161,8 +165,8 @@ enterL :: (Eq outlet, Eq food) =>
           outlet -> food -> Recommendation -> RecL outlet food -> RecL outlet food
 enterF :: (Eq outlet, Eq food) =>
           outlet -> food -> Recommendation -> RecF outlet food -> RecF outlet food
-enterL = undefined
-enterF = undefined
+enterL o f rect (RecL db) = RecL (((o, f), rect) : filter (\((x, y), _) -> x == o && y == f) db)
+enterF o f rect (RecF fn) = undefined
 
 {-
 ### 2(iii) [6 marks]
@@ -174,8 +178,8 @@ reportL :: (Eq outlet, Eq food) =>
            outlet -> food -> RecL outlet food -> Maybe Recommendation
 reportF :: (Eq outlet, Eq food) =>
            outlet -> food -> RecF outlet food -> Maybe Recommendation
-reportL = undefined
-reportF = undefined
+reportL o f (RecL x) = lookup (o, f) x 
+reportF o f (RecF x) = x (o, f)
 
 {-
 ## Question 3 [10 marks]

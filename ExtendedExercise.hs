@@ -1,5 +1,9 @@
 module ExtendedExercise where
+
 import Text.Read (readMaybe) -- for the runnable version
+-- for the runnable version
+import Data.List(groupBy)
+import Data.Function(on)
 
 {-
 # SOF3/Extended Exercise: The Royal Game of Ur
@@ -135,7 +139,8 @@ data GameState = GameState Placement Player
 Implement the utility function `opponent` that returns a player's opponent.
 -}
 opponent :: Player -> Player
-opponent = undefined
+opponent Red = Green
+opponent Green = Red
 test_opponent :: Bool
 test_opponent = opponent Red == Green
 {-
@@ -145,7 +150,7 @@ Implement the utility function `isValidRoll` that checks a dice roll for being i
 
 -}
 isValidRoll :: Int -> Bool
-isValidRoll = undefined
+isValidRoll n = n >= 0 && n <= 4
 test_isValidRoll :: Bool
 test_isValidRoll  = isValidRoll 2 && not (isValidRoll 9)
 
@@ -158,12 +163,13 @@ treated as `Home`).
 
 -}
 plus :: Position -> Int -> Position
-plus = undefined
+plus pos n = ([pos..] ++ repeat Home) !! n
 test_plus :: Bool
 test_plus =    Start `plus` 0 == Start
             && Start `plus` 3 == Sq_3
             && Sq_3  `plus` 2 == Sq_5
             && Sq14  `plus` 4 == Home
+
 {-
 
 ## Task 4
@@ -173,11 +179,12 @@ between lists and `Placement`s.  They should be inverses of each other.
 -}
 toList :: Placement -> [((Position, Player), Int)]
 fromList :: [((Position, Player), Int)] -> Placement
-toList = undefined
-fromList = undefined
+toList fn = [(lu, x) | pl <- [Red, Green], pos <- [Start .. Home], let lu = (pos, pl), let x = fn lu, x /= 0]
+fromList xs = maybe 0 id . flip lookup xs
 testToFromList :: Bool
 testToFromList = ((Sq_3, Red), 9) `elem` toList(fromList [((Sq_3, Red), 9)])
                  && not(((Sq10, Red), 0) `elem` toList(fromList [((Sq_3, Red), 9)]))
+
 {-
 We can now instantiate `GameState` as an instance of `Eq`:
 
@@ -203,11 +210,27 @@ A placement is valid exactly when:
 4. `Start` and `Home` may have any number of pieces on them, subject to Rule 1.
 
 -}
+
+sharedSquare, greenPrivate, redPrivate :: [Position]
+sharedSquare = [Sq_5 .. Sq12]
+greenPrivate = [Sq_1 .. Sq_4]
+redPrivate = [Sq13 .. Sq14]
+
 validPlacement :: Placement -> Bool
 validList :: [((Position, Player), Int)] -> Bool
-validPlacement = undefined
-validList = undefined
+validPlacement pl = length greenPieces == 7 
+  && length redPieces == 7 
+  && sharedSquarePieces <= 1 
+  && redPrivateSquares <= 1 
+  && greenPrivateSquares <= 1
+  where greenPieces = concat [newVals | a <- [Green] , pos <- [Start .. Home], let vals = (pos, a), let newVals = replicate (pl vals) pos]
+        redPieces = concat [newVals | a <- [Red] , pos <- [Start .. Home], let vals = (pos, a), let newVals = replicate (pl vals) pos]
+        sharedSquarePieces = length $ [a | a <- greenPieces, a `elem` sharedSquare] ++ [a | a <- redPieces, a `elem` sharedSquare]
+        redPrivateSquares = length $ [a | a <- redPieces, a `elem` redPrivate]
+        greenPrivateSquares = length $ [a | a <- greenPieces, a `elem` greenPrivate]
 
+validList xs = validPlacement $ fromList xs
+ 
 test_validPlacement :: Bool
 test_validPlacement = validPlacement plac0 && not (any validPlacement [plac1, plac2])
   where
@@ -224,14 +247,19 @@ test_validPlacement = validPlacement plac0 && not (any validPlacement [plac1, pl
     plac2 (Start, Red)   = 6
     plac2 (Start, Green) = 7
     plac2 _              = 0
+
 {-
 ## Task 6
 
 The initial state has both players with all their tokens at the start.
 The first move belongs to the "red" player.  Implement this state.
 -}
+
 initGS :: GameState
-initGS = undefined
+initGS = GameState initPlac Red
+  where initPlac (Start, _) = piecesPerPlayer
+        initPlac (_, _)     = 0
+
 
 test_initGS_placement :: Bool
 test_initGS_placement = validPlacement plac
@@ -260,11 +288,13 @@ is `0` there is an ambiguity: are there no moves, or can any piece be
 moves.
 -}
 possibleMoves :: GameState -> Int -> [Position]
-possibleMoves = undefined
+possibleMoves 0 = []
+possibleMoves _ = []
 test_possibleMoves :: Bool
 test_possibleMoves =    possibleMoves initGS 0 == []
                      && possibleMoves initGS 3 == [Start]
 
+{-
 {-
 ## Task 8
 
@@ -455,3 +485,4 @@ playRGU = body initGS
                    id <- getInt "the ID of a token position" 0 (length pm - 1)
                    body (move gs (roll, pm!!id))
         done pl = putStrLn ("Congratulations: " ++ show pl ++ " wins!")
+        -}
