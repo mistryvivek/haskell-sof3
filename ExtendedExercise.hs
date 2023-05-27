@@ -67,12 +67,6 @@ data Position = Start -- off board
               deriving -- type classes that may be useful in your solution
                 (Eq, Ord, Enum, Bounded, Show)
 
-redBoard :: [Position]
-greenBoard :: [Position]
-redBoard = [Start .. Sq12] ++ [Home]
-greenBoard = [Start] ++ [Sq_5 .. Sq14] ++ [Home]
-
-
 {-
 The red player's pieces move along the top and middle rows, in
 numerical order, while the green player's pieces move similarly along
@@ -141,8 +135,7 @@ data GameState = GameState Placement Player
 Implement the utility function `opponent` that returns a player's opponent.
 -}
 opponent :: Player -> Player
-opponent Red = Green
-opponent Green = Red
+opponent = undefined
 test_opponent :: Bool
 test_opponent = opponent Red == Green
 {-
@@ -152,7 +145,7 @@ Implement the utility function `isValidRoll` that checks a dice roll for being i
 
 -}
 isValidRoll :: Int -> Bool
-isValidRoll a = a `elem` [0..4] 
+isValidRoll = undefined
 test_isValidRoll :: Bool
 test_isValidRoll  = isValidRoll 2 && not (isValidRoll 9)
 
@@ -165,10 +158,7 @@ treated as `Home`).
 
 -}
 plus :: Position -> Int -> Position
-plus pos dice = restOfBoard !! dice
-  where restOfBoard = [pos..Home] ++ repeat Home
-        
-        
+plus = undefined
 test_plus :: Bool
 test_plus =    Start `plus` 0 == Start
             && Start `plus` 3 == Sq_3
@@ -183,10 +173,8 @@ between lists and `Placement`s.  They should be inverses of each other.
 -}
 toList :: Placement -> [((Position, Player), Int)]
 fromList :: [((Position, Player), Int)] -> Placement
-toList placement =  [(pair, n)| a<-completeBoard, b<-possiblePlayer, let pair = (a, b), let n = placement pair, n /= 0]
-  where completeBoard = [Start .. Home]
-        possiblePlayer = [Red, Green]
-fromList places = maybe 0 id . flip lookup places 
+toList = undefined
+fromList = undefined
 testToFromList :: Bool
 testToFromList = ((Sq_3, Red), 9) `elem` toList(fromList [((Sq_3, Red), 9)])
                  && not(((Sq10, Red), 0) `elem` toList(fromList [((Sq_3, Red), 9)]))
@@ -448,7 +436,6 @@ getInt prompt minLimit maxLimit = body
               checkRoll n | 0 <= n && n <= maxLimit = pure n
                           | otherwise               = onError
 
-{-
 playRGU :: IO ()
 playRGU = body initGS
   where
@@ -468,4 +455,3 @@ playRGU = body initGS
                    id <- getInt "the ID of a token position" 0 (length pm - 1)
                    body (move gs (roll, pm!!id))
         done pl = putStrLn ("Congratulations: " ++ show pl ++ " wins!")
--}
