@@ -1,4 +1,5 @@
 module Formative2 where
+  
 import Data.List(nub)
 type REPLACE_THIS_TYPE = () -- DO NOT ALTER
 
@@ -165,9 +166,14 @@ enterL :: (Eq outlet, Eq food) =>
           outlet -> food -> Recommendation -> RecL outlet food -> RecL outlet food
 enterF :: (Eq outlet, Eq food) =>
           outlet -> food -> Recommendation -> RecF outlet food -> RecF outlet food
-enterL o f rect (RecL db) = RecL (((o, f), rect) : filter (\((x, y), _) -> x == o && y == f) db)
-enterF o f rect (RecF fn) = undefined
 
+-- enterF :: (Eq outlet, Eq food) =>
+-- outlet -> food -> Recommendation -> RecF ((outlet, food) -> Maybe Recommendation) -> RecF ((outlet, food) -> Maybe Recommendation)
+
+enterL o f rect (RecL db) = RecL (((o, f), rect) : filter (\((x, y), _) -> x == o && y == f) db)
+enterF o f rect (RecF fn) = RecF rm
+  where rm tup | tup == (o, f) = Just rect 
+               | otherwise = fn tup
 {-
 ### 2(iii) [6 marks]
 
@@ -214,11 +220,49 @@ Hint: use structural induction on the first parameter of `lenDistConcat`.
 
 You may assume the following strictness laws:
 ```haskell
-  length _|_ = _|_ -- length strict
+  length _|_ = _|_ -- length strictt
   _|_ ++ ys = _|_ -- (++) left-strict
   _|_ + n = _|_ -- (+) left-strict
 ```
-
 -}
+
 lenDistConcat :: [a] -> [a] -> ProofLayout Int
-lenDistConcat = undefined
+lenDistConcat [] ys = length ([] ++ ys)
+                      :=:
+                      length ys
+                      :=: 
+                      0 + length ys
+                      :=:
+                      length [] + length ys
+                      :=:
+                      QED
+
+lenDistConcat (x:xs) ys =
+  length ((x:xs) ++ ys)
+  :=: -- (++).1
+  length (x:(xs ++ ys))
+  :=: -- length.1
+  1 + length (xs ++ ys)
+  :=: -- Induction hypothesis
+  1 + length xs + length ys
+  :=: -- length.1
+  length (x:xs) + length ys
+  :=: QED
+
+{-
+```haskell
+-- This code will not parse: it needs to be commented out in answers.
+lenDistConcat ⊥ ys =
+  length (⊥ ++ ys)
+  :=: -- (++) left-strict
+  length ⊥
+  :=: -- length strict
+  ⊥
+  :=: -- (+) left-strict
+  ⊥ + length ys
+  :=: -- length strict
+  length ⊥ + length ys
+```
+-}
+
+

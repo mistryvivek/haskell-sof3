@@ -288,13 +288,18 @@ is `0` there is an ambiguity: are there no moves, or can any piece be
 moves.
 -}
 possibleMoves :: GameState -> Int -> [Position]
-possibleMoves 0 = []
-possibleMoves _ = []
+possibleMoves _ 0 = []
+possibleMoves (GameState fn col) n = filter validSquare possibleStarts
+  where possibleStarts = [x | x <- [Start .. Sq14], let num = fn (x, col), num > 0]
+        validSquare a = fn (newMove, col) == 0 && newMove /= Home && 
+            (isRosette newMove && fn (newMove, opponent col) == 0|| not (isRosette newMove))
+          where newMove = a `plus` n
+
+
 test_possibleMoves :: Bool
 test_possibleMoves =    possibleMoves initGS 0 == []
                      && possibleMoves initGS 3 == [Start]
 
-{-
 {-
 ## Task 8
 
@@ -319,7 +324,9 @@ dice-roll/position-to-move-from pair and returns a new `GameState`.
 -}
 
 move :: GameState -> (Int, Position) -> GameState
-move = undefined
+move (GameState fn col) (x, y) | not (isValidRoll x) = GameState fn col
+                               | y `notElem` possibleMoves (GameState fn col) x = GameState fn (opponent col)
+                               | otherwise =  GameState fn col
 
 test_move :: Bool
 test_move =    plac1 (Start, Red) == pred piecesPerPlayer
@@ -345,7 +352,7 @@ test_move =    plac1 (Start, Red) == pred piecesPerPlayer
     GameState plac1  plr1  = gs1
     GameState plac2  plr2  = move gs1 (2, Start)
     GameState plac2' plr2' = move gs1 (5, Start)
-
+{-
 {-
 ## Task 9
 
